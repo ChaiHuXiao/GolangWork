@@ -1,0 +1,3 @@
+logconf:
+  path: D:\\WorkSpace\\Go\\src\\github.com\\cncamp\\golang\\logs
+  leve: 1
