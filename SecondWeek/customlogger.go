@@ -2,17 +2,17 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"time"
 )
 
 const (
-	INFO    = 0
-	DEBUG   = 1
-	TRACE   = 2
-	WARNING = 3
-	ERROR   = 4
-	FATAL   = 5
+	INFO           = 0
+	DEBUG          = 1
+	WARNING        = 2
+	ERROR          = 3
+	FILEWRITEERROR = "File write failure "
 )
 
 type MyLogger struct {
@@ -53,4 +53,38 @@ func StringSplicing(cap int, joins ...string) string {
 		buffer.WriteString(v)
 	}
 	return buffer.String()
+}
+
+func (logger *MyLogger) Istoday() bool {
+	return time.Now().Year() == logger.time.Year() && time.Now().Month() == logger.time.Month() && time.Now().Day() == logger.time.Day()
+}
+
+func (logger *MyLogger) writeToLog(msg string) {
+
+	defer logger.file.Close()
+
+	if logger == nil {
+		panic("Description Failed to create a log object！")
+	}
+
+	if !logger.Istoday() {
+		logger = logger.CreateLogFile()
+	}
+
+	var curLevel string
+	switch logger.level {
+	case INFO:
+		curLevel = "INFO"
+	case DEBUG:
+		curLevel = "DEBUG"
+	case WARNING:
+		curLevel = "WARNING"
+	case ERROR:
+		curLevel = "ERROR"
+	}
+	_, err := io.WriteString(logger.file, time.Now().Format("2006-01-02 15:04:05")+curLevel+"  "+msg)
+	if err != nil {
+		panic(err.Error())
+	}
+
 }

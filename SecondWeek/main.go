@@ -1,62 +1,53 @@
 package main
 
 import (
-	"fmt"
-	"go-extend/exnet"
+
+	// "go-extend/exnet"
+	"io"
+	"log"
 	"net/http"
 	"os"
-	"path"
+	"strconv"
+	"strings"
 )
 
 func main() {
-	toLog()
-	// fmt.Println(prepareLog())
-}
-
-func toLog() {
-	getwd, _ := os.Getwd() // 设置文件存储路径在当前工作目录下
-	newPath := path.Join(getwd, "./exercise/logger/logFile")
-	InitializeLogger(newPath)
-	// for {
-	// 	my.Debug("这是一条Debug信息")
-	// 	time.Sleep(time.Second)
-	// 	my.TRACE("这是一条Trace信息")
-	// 	time.Sleep(time.Second)
-	// 	my.INFO("这是一条Info信息")
-	// 	time.Sleep(time.Second)
-	// 	my.WARNING("这是一条Warning信息")
-	// 	time.Sleep(time.Second)
-	// 	my.ERROR("这是一条Error信息")
-	// 	time.Sleep(time.Second)
-	// 	my.FATAL("这是一条Fatal信息")
-	// 	time.Sleep(time.Second)
-	// }
+	InitializeLog()
+	httpservice()
 }
 
 func healthzHandle(w http.ResponseWriter, r *http.Request) {
-	// print(r.RemoteAddr)
-	ip := exnet.ClientPublicIP(r)
-	if ip == "" {
-		ip = exnet.ClientIP(r)
-	}
-	println(ip)
-	// log.Logger
+	ip := r.RemoteAddr
+	ip = ip[0:strings.LastIndex(ip, ":")]
 	if len(r.Header) > 0 {
 		for k, v := range r.Header {
 			w.Header().Set(k, v[0])
-			// println(len(v))
-			// // println("HeaderKey: " + k) // + " HeaderValue: " + v[0] + " HeaderValueLength: " + strconv.Itoa(len(v)))
 		}
 	}
 	version := os.Getenv("GOVERSION")
-	fmt.Printf("系统版本：%s", version)
 	w.Header().Set("content-type", "application/json")
 	w.Header().Set("System-Version", version)
 	w.WriteHeader(http.StatusOK)
-
+	log.Println(ip + " " + strconv.Itoa(http.StatusOK))
 }
 
 func httpservice() {
 	http.HandleFunc("/healthz", healthzHandle)
 	http.ListenAndServe("127.0.0.1:8000", nil)
 }
+
+func InitializeLog() {
+	log.SetPrefix("[ERROR]")
+	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
+	fileName := "debug.log"
+	logFile, _ := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModeAppend|os.ModePerm)
+	log.SetOutput(io.MultiWriter(logFile))
+}
+
+// func getIPAddress() {
+// 	ip := exnet.ClientPublicIP(r)
+// 	if ip == "" {
+// 		ip = exnet.ClientIP(r)
+// 	}
+// 	return ip
+// }

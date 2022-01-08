@@ -20,26 +20,23 @@ const (
 	CONFIGURATION = "conf.yaml"
 )
 
-func init() {
-	ReadingConfiguration()
-}
+// func init() {
+// 	conf := Conf{}
+// 	conf.ReadingConfiguration()
+// }
 
-func ReadingConfiguration() Conf {
+func (cfg *Conf) ReadingConfiguration() *Conf {
 	bytes, err := ioutil.ReadFile(CONFIGURATION)
 	if err != nil {
 		panic(err)
 	}
-	conf := Conf{}
-	err = yaml.Unmarshal(bytes, &conf)
+
+	err = yaml.Unmarshal(bytes, cfg)
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(conf.Logconf.Leve)
-	return conf
-}
-
-func getLevel(conf *Conf) int8 {
-	return conf.Logconf.Leve
+	fmt.Println(cfg.Logconf.Leve)
+	return cfg
 }
